@@ -9,16 +9,14 @@ export const Calculator = () => {
 
     const handleNumber = (value) => {
         setNumber(prev => {
-            // prevent multiple decimals
             if (value === "." && prev.includes(".")) {
                 return prev;
             }
 
-            // handle "0" properly
             if (prev === "0") {
-                if (value === ".") return "0.";   // allow decimal
-                if (value === "00") return "0";   // prevent "000"
-                return value;                     // replace with new number
+                if (value === ".") return "0.";
+                if (value === "00") return "0";
+                return value;
             }
 
             return prev + value;
