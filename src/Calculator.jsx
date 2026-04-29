@@ -1,142 +1,153 @@
-import { faCalculator } from "@fortawesome/free-solid-svg-icons"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { useState } from "react"
+import { faCalculator } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useState } from "react";
+
+const CalculatorButton = ({ label, onClick }) => (
+  <button
+    onClick={onClick}
+    className="bg-neutral-700 p-4 rounded-lg text-xl font-medium hover:bg-neutral-600 transition-colors"
+  >
+    {label}
+  </button>
+);
 
 export const Calculator = () => {
-    const [number, setNumber] = useState("0")
-    const [previousNumber, setPreviousNumber] = useState(null)
-    const [operator, setOperator] = useState(null)
+  const [number, setNumber] = useState("0");
+  const [previousNumber, setPreviousNumber] = useState(null);
+  const [operator, setOperator] = useState(null);
 
-    const handleNumber = (value) => {
-        setNumber(prev => {
-            if (value === "." && prev.includes(".")) {
-                return prev;
-            }
+  const handleNumber = (value) => {
+    setNumber((prev) => {
+      if (value === "." && prev.includes(".")) return prev;
 
-            if (prev === "0") {
-                if (value === ".") return "0.";
-                if (value === "00") return "0";
-                return value;
-            }
+      if (prev === "0") {
+        if (value === ".") return "0.";
+        if (value === "00") return "0";
+        return value;
+      }
 
-            return prev + value;
-        });
-    };
+      return prev + value;
+    });
+  };
 
-    const handleOperator = (op) => {
-        if (operator) {
-            setOperator(op);
-            return;
-        }
-        setPreviousNumber(number);
-        setOperator(op);
-        setNumber("0");
-    };
+  const handleOperator = (op) => {
+    if (operator) {
+      setOperator(op);
+      return;
+    }
+    setPreviousNumber(number);
+    setOperator(op);
+    setNumber("0");
+  };
 
-    const handleClearAllNumbers = () => {
-        setNumber("0")
-        setPreviousNumber(null)
-        setOperator(null)
+  // Clear all
+  const handleClearAll = () => {
+    setNumber("0");
+    setPreviousNumber(null);
+    setOperator(null);
+  };
+
+  // Backspace
+  const handleBackspace = () => {
+    setNumber((prev) => (prev.length === 1 ? "0" : prev.slice(0, -1)));
+  };
+
+  // Percent
+  const handlePercent = () => {
+    if (!previousNumber || !operator) return;
+
+    const prev = parseFloat(previousNumber);
+    const current = parseFloat(number);
+
+    const result =
+      operator === "+" || operator === "-"
+        ? (prev * current) / 100
+        : current / 100;
+
+    setNumber(result.toString());
+  };
+
+  // Calculate
+  const calculate = () => {
+    const prev = parseFloat(previousNumber);
+    const current = parseFloat(number);
+
+    let result;
+
+    switch (operator) {
+      case "+":
+        result = prev + current;
+        break;
+      case "-":
+        result = prev - current;
+        break;
+      case "x":
+        result = prev * current;
+        break;
+      case "/":
+        result = current !== 0 ? prev / current : "Error";
+        break;
+      default:
+        return;
     }
 
-    const handleClearNumber = () => {
-        setNumber(prev => {
-            if (prev.length === 1) return "0";
-            return prev.slice(0, -1);
-        });
-    }
+    setNumber(result.toString());
+    setPreviousNumber(null);
+    setOperator(null);
+  };
 
-    const handlePercent = () => {
-        if (!previousNumber || !operator) return;
+  // Button layout config
+  const buttons = [
+    { label: "C", action: handleBackspace },
+    { label: "%", action: handlePercent },
+    { label: "CE", action: handleClearAll },
+    { label: "/", action: () => handleOperator("/") },
 
-        const prev = parseFloat(previousNumber);
-        const current = parseFloat(number);
+    ...[7, 8, 9].map((first_row) => ({
+      label: first_row,
+      action: () => handleNumber(first_row.toString()),
+    })),
+    { label: "x", action: () => handleOperator("x") },
 
-        let result;
+    ...[4, 5, 6].map((second_row) => ({
+      label: second_row,
+      action: () => handleNumber(second_row.toString()),
+    })),
+    { label: "-", action: () => handleOperator("-") },
 
-        if (operator === "+" || operator === "-") {
-            result = (prev * current) / 100;
-        } else {
-            result = current / 100;
-        }
+    ...[1, 2, 3].map((third_row) => ({
+      label: third_row,
+      action: () => handleNumber(third_row.toString()),
+    })),
+    { label: "+", action: () => handleOperator("+") },
 
-        setNumber(result.toString());
-    };
+    { label: "00", action: () => handleNumber("00") },
+    { label: "0", action: () => handleNumber("0") },
+    { label: ".", action: () => handleNumber(".") },
+    { label: "=", action: calculate },
+  ];
 
-    const calculateResult = () => {
-        const prev = parseFloat(previousNumber)
-        const current = parseFloat(number)
-        let result;
-        switch (operator) {
-            case "+":
-                result = prev + current
-                break;
-            case "-":
-                result = prev - current
-                break;
-            case "x":
-                result = prev * current
-                break;
-            case "/":
-                result = current !== 0 ? prev / current : "Error";
-                break;
-            default:
-                return
-        }
-        setNumber(result.toString())
-        setPreviousNumber(null)
-        setOperator(null)
-    }
+  return (
+    <div className="bg-neutral-900 text-white p-5 rounded-lg shadow-lg flex flex-col items-center gap-4">
+      <p className="flex items-center gap-2 w-full">
+        <FontAwesomeIcon icon={faCalculator} />
+        Calculator
+      </p>
 
-    return (
-        <div className="bg-neutral-900 text-white p-5 rounded-lg shadow-lg flex flex-col items-center gap-4 w-[17vw]">
-            <p className="flex items-center gap-2 text-left w-full"><FontAwesomeIcon icon={faCalculator} />Calculator</p>
-            <h1 className="text-left text-xl font-medium w-full">Standard</h1>
-            <div className="w-full text-right ">
-                <p className="text-lg text-gray-400">{previousNumber} {operator} {number}</p>
-                <p className="text-5xl font-semibold text-gray-100">{number}</p>
-            </div>
+      <h1 className="text-left text-xl font-medium w-full">Standard</h1>
 
-            <div className="grid grid-cols-4 gap-2 w-full">
+      <div className="w-full text-right">
+        <p className="text-lg text-gray-400">
+          {previousNumber} {operator} {number}
+        </p>
+        <p className="text-5xl font-semibold">{number}</p>
+      </div>
 
-                <button onClick={handleClearNumber} className="bg-neutral-700 p-4 rounded-lg text-xl font-medium hover:bg-neutral-600 transition-colors">C</button>
-                <button onClick={handlePercent} className="bg-neutral-700 p-4 rounded-lg text-xl font-medium hover:bg-neutral-600 transition-colors">%</button>
-                <button onClick={handleClearAllNumbers} className="bg-neutral-700 p-4 rounded-lg text-xl font-medium hover:bg-neutral-600 transition-colors">CE</button>
-                <button onClick={() => handleOperator("/")} className="bg-neutral-700 p-4 rounded-lg text-xl font-medium hover:bg-neutral-600 transition-colors">/</button>
-
-                {/* 7,8,9,x */}
-                {[7, 8, 9].map((first_row_num) => (
-                    <button
-                        key={first_row_num}
-                        className="bg-neutral-700 p-4 rounded-lg text-xl font-medium hover:bg-neutral-600 transition-colors"
-                        onClick={() => handleNumber(first_row_num.toString())}>{first_row_num}</button>
-                ))}
-                <button onClick={() => handleOperator("x")} className="bg-neutral-700 p-4 rounded-lg text-xl font-medium hover:bg-neutral-600 transition-colors">x</button>
-
-                {/* 4,5,6,- */}
-                {[4, 5, 6].map((second_row_num) => (
-                    <button
-                        key={second_row_num}
-                        className="bg-neutral-700 p-4 rounded-lg text-xl font-medium hover:bg-neutral-600 transition-colors"
-                        onClick={() => handleNumber(second_row_num.toString())}>{second_row_num}</button>
-                ))}
-                <button onClick={() => handleOperator("-")} className="bg-neutral-700 p-4 rounded-lg text-xl font-medium hover:bg-neutral-600 transition-colors">-</button>
-
-                {/* 1,2,3,+ */}
-                {[1, 2, 3].map((third_row_num) => (
-                    <button
-                        key={third_row_num}
-                        className="bg-neutral-700 p-4 rounded-lg text-xl font-medium hover:bg-neutral-600 transition-colors"
-                        onClick={() => handleNumber(third_row_num.toString())}>{third_row_num}</button>
-                ))}
-                <button onClick={() => handleOperator("+")} className="bg-neutral-700 p-4 rounded-lg text-xl font-medium hover:bg-neutral-600 transition-colors">+</button>
-
-                {/* 00,0,.,= */}
-                <button onClick={() => handleNumber("00")} className="bg-neutral-700 p-4 rounded-lg text-xl font-medium hover:bg-neutral-600 transition-colors">00</button>
-                <button onClick={() => handleNumber("0")} className="bg-neutral-700 p-4 rounded-lg text-xl font-medium hover:bg-neutral-600 transition-colors">0</button>
-                <button onClick={() => handleNumber(".")} className="bg-neutral-700 p-4 rounded-lg text-xl font-medium hover:bg-neutral-600 transition-colors">.</button>
-                <button onClick={calculateResult} className="bg-neutral-700 p-4 rounded-lg text-xl font-medium hover:bg-neutral-600 transition-colors">=</button>
-            </div>
-        </div>
-    )
-}
+      <div className="grid grid-cols-4 gap-2 w-full">
+        {buttons.map((btn, index) => (
+          <CalculatorButton key={index} label={btn.label} onClick={btn.action} />
+        ))}
+      </div>
+    </div>
+  );
+};
