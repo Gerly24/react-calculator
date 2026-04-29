@@ -7,21 +7,63 @@ export const Calculator = () => {
     const [previousNumber, setPreviousNumber] = useState(null)
     const [operator, setOperator] = useState(null)
 
-    const handleNumber = (number) => {
-        setNumber((prev) => prev === "0" ? number : prev + number)
-    }
+    const handleNumber = (value) => {
+        setNumber(prev => {
+            // prevent multiple decimals
+            if (value === "." && prev.includes(".")) {
+                return prev;
+            }
 
-    const handleOperator = (operator) => {
-        setPreviousNumber(number)
-        setOperator(operator)
-        setNumber("0")
-    }
+            // handle "0" properly
+            if (prev === "0") {
+                if (value === ".") return "0.";   // allow decimal
+                if (value === "00") return "0";   // prevent "000"
+                return value;                     // replace with new number
+            }
 
-    const handleClearNumber = () => {
+            return prev + value;
+        });
+    };
+
+    const handleOperator = (op) => {
+        if (operator) {
+            setOperator(op);
+            return;
+        }
+        setPreviousNumber(number);
+        setOperator(op);
+        setNumber("0");
+    };
+
+    const handleClearAllNumbers = () => {
         setNumber("0")
         setPreviousNumber(null)
         setOperator(null)
     }
+
+    const handleClearNumber = () => {
+        setNumber(prev => {
+            if (prev.length === 1) return "0";
+            return prev.slice(0, -1);
+        });
+    }
+
+    const handlePercent = () => {
+        if (!previousNumber || !operator) return;
+
+        const prev = parseFloat(previousNumber);
+        const current = parseFloat(number);
+
+        let result;
+
+        if (operator === "+" || operator === "-") {
+            result = (prev * current) / 100;
+        } else {
+            result = current / 100;
+        }
+
+        setNumber(result.toString());
+    };
 
     const calculateResult = () => {
         const prev = parseFloat(previousNumber)
@@ -58,14 +100,22 @@ export const Calculator = () => {
             </div>
 
             <div className="grid grid-cols-4 gap-2 w-full">
+
+                <button onClick={handleClearNumber} className="bg-neutral-700 p-4 rounded-lg text-xl font-medium hover:bg-neutral-600 transition-colors">C</button>
+                <button onClick={handlePercent} className="bg-neutral-700 p-4 rounded-lg text-xl font-medium hover:bg-neutral-600 transition-colors">%</button>
+                <button onClick={handleClearAllNumbers} className="bg-neutral-700 p-4 rounded-lg text-xl font-medium hover:bg-neutral-600 transition-colors">CE</button>
+                <button onClick={() => handleOperator("/")} className="bg-neutral-700 p-4 rounded-lg text-xl font-medium hover:bg-neutral-600 transition-colors">/</button>
+
+                {/* 7,8,9,x */}
                 {[7, 8, 9].map((first_row_num) => (
                     <button
                         key={first_row_num}
                         className="bg-neutral-700 p-4 rounded-lg text-xl font-medium hover:bg-neutral-600 transition-colors"
                         onClick={() => handleNumber(first_row_num.toString())}>{first_row_num}</button>
                 ))}
-                <button onClick={() => handleOperator("+")} className="bg-neutral-700 p-4 rounded-lg text-xl font-medium hover:bg-neutral-600 transition-colors">+</button>
+                <button onClick={() => handleOperator("x")} className="bg-neutral-700 p-4 rounded-lg text-xl font-medium hover:bg-neutral-600 transition-colors">x</button>
 
+                {/* 4,5,6,- */}
                 {[4, 5, 6].map((second_row_num) => (
                     <button
                         key={second_row_num}
@@ -74,17 +124,19 @@ export const Calculator = () => {
                 ))}
                 <button onClick={() => handleOperator("-")} className="bg-neutral-700 p-4 rounded-lg text-xl font-medium hover:bg-neutral-600 transition-colors">-</button>
 
+                {/* 1,2,3,+ */}
                 {[1, 2, 3].map((third_row_num) => (
                     <button
                         key={third_row_num}
                         className="bg-neutral-700 p-4 rounded-lg text-xl font-medium hover:bg-neutral-600 transition-colors"
                         onClick={() => handleNumber(third_row_num.toString())}>{third_row_num}</button>
                 ))}
-                <button onClick={() => handleOperator("x")} className="bg-neutral-700 p-4 rounded-lg text-xl font-medium hover:bg-neutral-600 transition-colors">x</button>
+                <button onClick={() => handleOperator("+")} className="bg-neutral-700 p-4 rounded-lg text-xl font-medium hover:bg-neutral-600 transition-colors">+</button>
 
-                <button onClick={handleClearNumber} className="bg-neutral-700 p-4 rounded-lg text-xl font-medium hover:bg-neutral-600 transition-colors">C</button>
-                <button onClick={() => handleOperator("0")} className="bg-neutral-700 p-4 rounded-lg text-xl font-medium hover:bg-neutral-600 transition-colors">0</button>
-                <button onClick={() => handleOperator("/")} className="bg-neutral-700 p-4 rounded-lg text-xl font-medium hover:bg-neutral-600 transition-colors">/</button>
+                {/* 00,0,.,= */}
+                <button onClick={() => handleNumber("00")} className="bg-neutral-700 p-4 rounded-lg text-xl font-medium hover:bg-neutral-600 transition-colors">00</button>
+                <button onClick={() => handleNumber("0")} className="bg-neutral-700 p-4 rounded-lg text-xl font-medium hover:bg-neutral-600 transition-colors">0</button>
+                <button onClick={() => handleNumber(".")} className="bg-neutral-700 p-4 rounded-lg text-xl font-medium hover:bg-neutral-600 transition-colors">.</button>
                 <button onClick={calculateResult} className="bg-neutral-700 p-4 rounded-lg text-xl font-medium hover:bg-neutral-600 transition-colors">=</button>
             </div>
         </div>
