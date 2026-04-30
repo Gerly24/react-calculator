@@ -129,9 +129,9 @@ export const Calculator = () => {
 
   return (
     <div className="bg-neutral-900 text-white p-5 rounded-lg shadow-lg flex flex-col items-center gap-4">
-      <p className="flex items-center gap-2 w-full">
+      <p className="flex items-center gap-2 w-full text-gray-300 text-sm">
         <FontAwesomeIcon icon={faCalculator} />
-        Calculator
+        Calculator with useState
       </p>
 
       <h1 className="text-left text-xl font-medium w-full">Standard</h1>
