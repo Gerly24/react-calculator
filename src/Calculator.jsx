@@ -2,11 +2,31 @@ import { faCalculator } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
 
+const getButtonClass = (label) => {
+  const baseClass =
+    "p-4 rounded-xl text-xl font-medium transition-all duration-200 active:scale-95 border";
+
+  if (label === "=") {
+    return `${baseClass} bg-gradient-to-br from-blue-500 to-indigo-600 text-white border-blue-500/20 hover:brightness-110`;
+  }
+
+  if (["+", "-", "x", "/"].includes(label)) {
+    return `${baseClass} bg-blue-500/10 text-blue-300 border-blue-400/20 hover:bg-blue-500/20`;
+  }
+
+  if (label === "CE") {
+    return `${baseClass} bg-red-500/10 text-red-300 border-red-400/20 hover:bg-red-500/20`;
+  }
+
+  if (["C", "%"].includes(label)) {
+    return `${baseClass} bg-white/10 text-gray-300 border-white/10 hover:bg-white/15`;
+  }
+
+  return `${baseClass} bg-neutral-800 text-white border-white/5 hover:bg-neutral-700`;
+};
+
 const CalculatorButton = ({ label, onClick }) => (
-  <button
-    onClick={onClick}
-    className="bg-neutral-700 p-4 rounded-lg text-xl font-medium hover:bg-neutral-600 transition-colors"
-  >
+  <button onClick={onClick} className={getButtonClass(label)}>
     {label}
   </button>
 );
@@ -35,29 +55,31 @@ export const Calculator = () => {
       setOperator(op);
       return;
     }
+
     setPreviousNumber(number);
     setOperator(op);
     setNumber("0");
   };
 
-  // Clear all
   const handleClearAll = () => {
     setNumber("0");
     setPreviousNumber(null);
     setOperator(null);
   };
 
-  // Backspace
   const handleBackspace = () => {
-    setNumber((prev) => (prev.length === 1 ? "0" : prev.slice(0, -1)));
+    setNumber((prev) => (prev.length <= 1 ? "0" : prev.slice(0, -1)));
   };
 
-  // Percent
   const handlePercent = () => {
-    if (!previousNumber || !operator) return;
+    const current = parseFloat(number);
+
+    if (!previousNumber || !operator) {
+      setNumber((current / 100).toString());
+      return;
+    }
 
     const prev = parseFloat(previousNumber);
-    const current = parseFloat(number);
 
     const result =
       operator === "+" || operator === "-"
@@ -67,7 +89,6 @@ export const Calculator = () => {
     setNumber(result.toString());
   };
 
-  // Calculate
   const calculate = () => {
     const prev = parseFloat(previousNumber);
     const current = parseFloat(number);
@@ -78,15 +99,19 @@ export const Calculator = () => {
       case "+":
         result = prev + current;
         break;
+
       case "-":
         result = prev - current;
         break;
+
       case "x":
         result = prev * current;
         break;
+
       case "/":
         result = current !== 0 ? prev / current : "Error";
         break;
+
       default:
         return;
     }
@@ -96,28 +121,27 @@ export const Calculator = () => {
     setOperator(null);
   };
 
-  // Button layout config
   const buttons = [
     { label: "C", action: handleBackspace },
     { label: "%", action: handlePercent },
     { label: "CE", action: handleClearAll },
     { label: "/", action: () => handleOperator("/") },
 
-    ...[7, 8, 9].map((first_row) => ({
-      label: first_row,
-      action: () => handleNumber(first_row.toString()),
+    ...[7, 8, 9].map((num) => ({
+      label: num.toString(),
+      action: () => handleNumber(num.toString()),
     })),
     { label: "x", action: () => handleOperator("x") },
 
-    ...[4, 5, 6].map((second_row) => ({
-      label: second_row,
-      action: () => handleNumber(second_row.toString()),
+    ...[4, 5, 6].map((num) => ({
+      label: num.toString(),
+      action: () => handleNumber(num.toString()),
     })),
     { label: "-", action: () => handleOperator("-") },
 
-    ...[1, 2, 3].map((third_row) => ({
-      label: third_row,
-      action: () => handleNumber(third_row.toString()),
+    ...[1, 2, 3].map((num) => ({
+      label: num.toString(),
+      action: () => handleNumber(num.toString()),
     })),
     { label: "+", action: () => handleOperator("+") },
 
@@ -127,26 +151,59 @@ export const Calculator = () => {
     { label: "=", action: calculate },
   ];
 
+  const expression =
+    previousNumber && operator ? `${previousNumber} ${operator}` : "";
+
   return (
-    <div className="bg-neutral-900 text-white p-5 rounded-lg shadow-lg flex flex-col items-center gap-4">
-      <p className="flex items-center gap-2 w-full text-gray-300 text-sm">
-        <FontAwesomeIcon icon={faCalculator} />
-        Calculator with useState
-      </p>
+    <div className="w-full flex justify-center px-2 sm:px-4">
+      <div className="w-full max-w-85 sm:max-w-100 md:max-w-112.5 rounded-4xl bg-linear-to-br from-neutral-900 via-neutral-950 to-black p-4 sm:p-5 md:p-6 text-white border border-white/10 shadow-2xl shadow-black/40">
+        {/* HEADER */}
+        <div className="mb-5 flex items-center justify-between">
+          <div>
+            <p className="flex items-center gap-2 text-xs sm:text-sm text-gray-400">
+              <FontAwesomeIcon icon={faCalculator} className="text-blue-400" />
+              Calculator with useState
+            </p>
 
-      <h1 className="text-left text-xl font-medium w-full">Standard</h1>
+            <h1 className="mt-1 text-xl sm:text-2xl md:text-3xl font-semibold tracking-tight">
+              Standard
+            </h1>
+          </div>
 
-      <div className="w-full text-right">
-        <p className="text-lg text-gray-400">
-          {previousNumber} {operator} {number}
-        </p>
-        <p className="text-5xl font-semibold">{number}</p>
-      </div>
+          <div className="flex h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 items-center justify-center rounded-2xl bg-blue-500/10 border border-blue-400/20">
+            <FontAwesomeIcon
+              icon={faCalculator}
+              className="text-blue-300 text-sm sm:text-base md:text-lg"
+            />
+          </div>
+        </div>
 
-      <div className="grid grid-cols-4 gap-2 w-full">
-        {buttons.map((btn, index) => (
-          <CalculatorButton key={index} label={btn.label} onClick={btn.action} />
-        ))}
+        {/* DISPLAY */}
+        <div className="mb-5 rounded-3xl bg-white/5 border border-white/10 p-4 sm:p-5 shadow-inner">
+          <p className="min-h-6 text-right text-xs sm:text-sm md:text-base text-gray-400 break-all overflow-hidden">
+            {expression}
+          </p>
+
+          <p
+            style={{ fontVariantNumeric: "tabular-nums" }}
+            className={`mt-3 min-h-14 text-right font-semibold tracking-tight text-3xl sm:text-5xl md:text-6xl break-all overflow-hidden ${
+              number === "Error" ? "text-red-400" : "text-white"
+            }`}
+          >
+            {number}
+          </p>
+        </div>
+
+        {/* BUTTON GRID */}
+        <div className="grid grid-cols-4 gap-2 sm:gap-3 md:gap-4">
+          {buttons.map((btn, index) => (
+            <CalculatorButton
+              key={index}
+              label={btn.label}
+              onClick={btn.action}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
